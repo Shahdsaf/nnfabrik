@@ -128,6 +128,7 @@ def load_state_dict(
     ignore_unused: bool = False,
     match_names: bool = False,
     ignore_dim_mismatch: bool = False,
+    prefix_agreement: float = 0.66,
 ):
     """
     Loads given state_dict into model, but allows for some more flexible loading.
@@ -139,12 +140,13 @@ def load_state_dict(
                         by finding and removing a common prefix from the keys in each dict
     :param ignore_dim_mismatch: if True ignores parameters in `state_dict` that don't fit the shape in `model`
     """
+
     model_dict = model.state_dict()
     # 0. Try to match names by adding or removing prefix:
     if match_names:
         # find prefix keys of each state dict:
-        s_pref, s_idx = find_prefix(list(state_dict.keys()))
-        m_pref, m_idx = find_prefix(list(model_dict.keys()))
+        s_pref, s_idx = find_prefix(list(state_dict.keys()), p_agree=prefix_agreement)
+        m_pref, m_idx = find_prefix(list(model_dict.keys()), p_agree=prefix_agreement)
         # switch prefixes:
         stripped_state_dict = {}
         for k, v in state_dict.items():
@@ -152,7 +154,7 @@ def load_state_dict(
                 stripped_key = ".".join(k.split(".")[s_idx:])
             else:
                 stripped_key = k
-            new_key = m_pref + stripped_key
+            new_key = m_pref + "." + stripped_key if m_pref else stripped_key
             stripped_state_dict[new_key] = v
         state_dict = stripped_state_dict
 
