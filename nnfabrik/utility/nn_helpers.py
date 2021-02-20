@@ -85,11 +85,13 @@ def move_to_device(model, gpu=True, multi_gpu=True):
     :return: torch.nn.Module, str
     """
     device = "cuda" if torch.cuda.is_available() and gpu else "cpu"
+    multi = False
     if multi_gpu and torch.cuda.device_count() > 1:
         print("Using ", torch.cuda.device_count(), "GPUs")
         model = nn.DataParallel(model)
+        multi = True
     model = model.to(device)
-    return model, device
+    return model, device, multi
 
 
 def find_prefix(keys: list, p_agree: float = 0.66, separator=".") -> (list, int):
